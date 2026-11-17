@@ -6,7 +6,7 @@
 
 | Что | Значение |
 |---|---|
-| Публичный URL `/docs` | `http://<ВАШ-IP>:8000/docs` |
+| Публичный URL `/docs` | `http://54.252.205.21:8000/docs` |
 | Скриншот Swagger UI с сервера | `screenshots/swagger.png` |
 | `docker compose ps` на сервере | см. раздел 5 |
 | Повторное развёртывание | см. раздел 6 |
@@ -77,7 +77,9 @@ Lightsail → инстанс → **Networking** → IPv4 Firewall → **Add rule
 ## 5. Вывод `docker compose ps`
 
 ```text
-<вставьте вывод с сервера: db — Up (healthy), api — Up>
+NAME                         IMAGE                    COMMAND                  SERVICE   CREATED          STATUS                    PORTS
+orders-api-lightsail-api-1   orders-api:1.0           "uvicorn app.main:ap…"   api       9 seconds ago    Up 8 seconds              0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp
+orders-api-lightsail-db-1    pgvector/pgvector:pg16   "docker-entrypoint.s…"   db        11 minutes ago   Up 11 minutes (healthy)   5432/tcp
 ```
 
 ## 6. Повторное развёртывание (обновление)
@@ -112,7 +114,7 @@ cd orders-api && ./deploy.sh        # git pull && docker compose up -d --build &
 
 > ⚠️ Не используйте `docker compose down -v` — флаг `-v` удаляет том с данными.
 
-Заметка об изменении и подтверждение сохранности данных: `<заполнить>`
+Заметка об изменении и подтверждение сохранности данных: Добавил эндпоинт GET /stats, версия API 1.0 → 1.1. До обновления в базе было 1 пользователь и 2 заказа (id 1 и 2, созданы 2026-11-17 10:55 и 10:56 UTC). После git pull и docker compose up -d --build те же 2 заказа на месте, GET /stats возвращает users: 1, orders: 2 — данные сохранились в томе pgdata.
 
 ## 7. Бонус: резервная копия
 
