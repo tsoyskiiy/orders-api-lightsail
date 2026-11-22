@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import select, text
+from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -25,13 +25,25 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Orders API", version="1.0", lifespan=lifespan)
+app = FastAPI(title="Orders API", version="1.1", lifespan=lifespan)
 
 
 @app.get("/health", tags=["service"])
 def health(db: Session = Depends(get_db)):
     db.execute(text("SELECT 1"))
     return {"status": "ok", "version": app.version}
+
+
+@app.get("/stats", tags=["service"])
+def stats(db: Session = Depends(get_db)):
+    """Количество записей в таблицах (только чтение)."""
+    count = lambda m: db.scalar(select(func.count()).select_from(m))
+    return {
+        "users": count(models.User),
+        "products": count(models.Product),
+        "orders": count(models.Order),
+        "documents": count(models.Document),
+    }
 
 
 # ---------- auth / users ----------

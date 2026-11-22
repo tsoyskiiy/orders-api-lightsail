@@ -84,11 +84,12 @@ orders-api-lightsail-db-1    pgvector/pgvector:pg16   "docker-entrypoint.s…"  
 
 ## 6. Повторное развёртывание (обновление)
 
-Изменение: новый эндпоинт только для чтения `GET /stats` (количество записей в таблицах). Добавьте в конец `app/main.py`:
+Изменение: новый эндпоинт только для чтения `GET /stats` — количество записей в таблицах. Код в `app/main.py` (функция `stats`), версия API поднята `1.0` → `1.1`.
 
 ```python
 @app.get("/stats", tags=["service"])
 def stats(db: Session = Depends(get_db)):
+    """Количество записей в таблицах (только чтение)."""
     count = lambda m: db.scalar(select(func.count()).select_from(m))
     return {
         "users": count(models.User),
@@ -98,16 +99,14 @@ def stats(db: Session = Depends(get_db)):
     }
 ```
 
-и в импорте замените `from sqlalchemy import select, text` на `from sqlalchemy import func, select, text`. Также поднимите `version="1.0"` → `"1.1"`.
-
-Перед обновлением создайте тестовые данные (пользователь, товар, заказ) и запомните `GET /stats` / `GET /orders`.
+Перед обновлением создайте тестовые данные (пользователь, товар, заказ) и запомните `GET /orders`.
 
 ```bash
 # локально
 git add -A && git commit -m "Add GET /stats" && git push
 
 # на сервере
-cd orders-api && ./deploy.sh        # git pull && docker compose up -d --build && docker compose ps
+cd ~/orders-api-lightsail && ./deploy.sh   # git pull && docker compose up -d --build && docker compose ps
 ```
 
 Проверка: `curl http://<ВАШ-IP>:8000/stats` работает, `/health` показывает `1.1`, а ранее созданные данные на месте — они лежат в именованном томе `pgdata`, который `up --build` не трогает.
